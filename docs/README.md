@@ -2,7 +2,7 @@
 
 ### IROS 2023 XR-ROB Workshop Demonstration
 
-{% include youtube.html id="T05h7Wme81Q" %}
+{% include youtube.html id="rlCdHOC1ifg" %}
 
 ## Related Works
 * [Using Single Demonstrations to Define Autonomous Manipulation
