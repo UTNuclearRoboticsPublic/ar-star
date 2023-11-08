@@ -31,6 +31,10 @@ params:
   spin_threads: 1
 
 publishers: [ # these are the topics to listen to on the robofleet servers
+
+]
+
+subscribers: [ # these are the topics to publish to the robofleet server
   {
     client_topic: "/junk/empty",
     rbf_topic: "/junk/empty",
@@ -49,27 +53,7 @@ publishers: [ # these are the topics to listen to on the robofleet servers
     rate_limit: 100.0
   },
   {
-    client_topic: "/hololens/surface_repair/user_feedback",
-    rbf_topic: "/hololens/surface_repair/user_feedback",
-    type: "std_msgs/UInt8"
-  },
-  {
-    client_topic: "/hololens/surface_repair/bounding_objects",
-    rbf_topic: "/hololens/surface_repair/bounding_objects",
-    type: "augre_msgs/BoundingObject3DArray"
-  },
-  {
-    client_topic: "/hololens/microphone/data",
-    rbf_topic: "/hololens/microphone/data",
-    type: "audio_common_msgs/AudioData"
-  },
-  {
-    client_topic: "/hololens/microphone/info",
-    rbf_topic: "/hololens/microphone/info",
-    type: "audio_common_msgs/AudioInfo"
-  },
-  {
-    client_topic: "//vaultbot/detection",
+    client_topic: "/vaultbot/detection",
     rbf_topic: "/vaultbot/detection",
     type: "augre_msgs/DetectedItem",
     no_drop: true,
@@ -89,8 +73,5 @@ publishers: [ # these are the topics to listen to on the robofleet servers
     no_drop: true,
     queue: 10
   }
-]
-
-subscribers: [ # these are the topics to publish to the robofleet server
 
 ]

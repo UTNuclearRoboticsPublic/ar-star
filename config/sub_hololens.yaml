@@ -59,17 +59,7 @@ publishers: [ # these are the topics to listen to on the robofleet servers
     type: "augre_msgs/BoundingObject3DArray"
   },
   {
-    client_topic: "/hololens/microphone/data",
-    rbf_topic: "/hololens/microphone/data",
-    type: "audio_common_msgs/AudioData"
-  },
-  {
-    client_topic: "/hololens/microphone/info",
-    rbf_topic: "/hololens/microphone/info",
-    type: "audio_common_msgs/AudioInfo"
-  },
-  {
-    client_topic: "//vaultbot/detection",
+    client_topic: "/vaultbot/detection",
     rbf_topic: "/vaultbot/detection",
     type: "augre_msgs/DetectedItem",
     no_drop: true,
