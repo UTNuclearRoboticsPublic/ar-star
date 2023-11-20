@@ -255,7 +255,8 @@ public:
     // ref: https://cs.nyu.edu/~panozzo/cg/02%20-%20Ray%20Tracing,%20C++.pdf
     bool IsPointInsideVolume( 
         const Vector3f& Point,
-        const std::vector<Matrix3f>& PolyMesh)
+        const std::vector<Matrix3f>& PolyMesh,
+        bool PrintDebug)
     {
         Vector3f pa, pb, pc, p, N;
         Vector3f ray_dir(2000.0f, 0.0f, 0.0f);
@@ -284,8 +285,11 @@ public:
                 p = Point + (t * ray_dir); // point of intersection
                 //N = (pb-pa).cross(pc-pa).normalized(); // noraml to the triangle at the intersection point
                 ++intersectionCount;
-                std::cout << "intersects: " << intersectionCount << std::endl;
-                std::cout << "intersection point: " << p << std::endl;
+                if (PrintDebug)
+                {
+                    std::cout << "intersects: " << intersectionCount << std::endl;
+                    std::cout << "intersection point: " << p << std::endl;
+                }
             }
         }
 

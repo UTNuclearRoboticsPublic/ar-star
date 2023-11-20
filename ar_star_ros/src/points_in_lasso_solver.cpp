@@ -9,6 +9,7 @@
 #include "ar_star_ros/GetPointsInLasso.h"
 
 ARStar::PolygonUtils polygon;
+bool PrintDebug = true;
 
 void GetPointsInPolygon(
     const sensor_msgs::PointCloud2& Cloud,
@@ -16,7 +17,7 @@ void GetPointsInPolygon(
     std_msgs::UInt8MultiArray& Points
     )
 {
-    // initialize variables
+    // init
 	int i{ 0 };
     uint32_t x_offset{ 0 }; 
 	uint32_t y_offset{ 0 };
@@ -48,7 +49,7 @@ void GetPointsInPolygon(
 		}
 	}
 
-    // iterate through the point cloud and fill position and color arrays
+    // iterate through the point cloud and check if each point in cloud and determine if it is inside volume
     Points.data.resize(Cloud.height * Cloud.width);
 	for (uint32_t row = 0; row < Cloud.height; ++row) {
 		for (uint32_t col = 0; col < Cloud.width; ++col) {
@@ -62,7 +63,7 @@ void GetPointsInPolygon(
 			point(2) = *(reinterpret_cast<const float*>(Cloud.data.data() + data_index + z_offset)); // z [m]
 
             // check if point is inside the volume
-            Points.data[i] = static_cast<uint8_t>(polygon.IsPointInsideVolume(point, Triangles));
+            Points.data[i] = static_cast<uint8_t>(polygon.IsPointInsideVolume(point, Triangles, PrintDebug));
 			i++;
 		}
 	}
@@ -76,7 +77,6 @@ bool HandleRequest(
     std::vector<int> tri_poly_indexes, side_indexes;
     std::vector<Eigen::Vector3f> upper_vertexes, lower_vertexes, interlocked_vertices;
     std::vector<Eigen::Matrix3f> tri_poly, upper_tri_poly, lower_tri_poly, side_tri, all_tri;
-    bool print_debug {true};
 
     // convert incoming lasso points into PCL cloud for further processing
     pcl::PointCloud<pcl::PointXYZ>::Ptr lasso_poly(
@@ -88,16 +88,16 @@ bool HandleRequest(
 
     // create triangulated volume from lasso polygon
     polygon.EarClippingTriangulate( // ------------------------------------------
-        lasso_poly, print_debug,                                           // in
+        lasso_poly, PrintDebug,                                           // in
         tri_poly, tri_poly_indexes);                                       // out
     polygon.ExtrudeTriangulatedPolygon( // --------------------------------------
-        tri_poly, tri_poly_indexes, Req.extrusion_depth.data, print_debug, // in
+        tri_poly, tri_poly_indexes, Req.extrusion_depth.data, PrintDebug, // in
         upper_tri_poly, lower_tri_poly,upper_vertexes, lower_vertexes);    // out
     polygon.WrapPolygon( // -----------------------------------------------------
-        upper_vertexes, lower_vertexes, print_debug,                       // in
+        upper_vertexes, lower_vertexes, PrintDebug,                       // in
         interlocked_vertices, side_indexes, side_tri);                     // out
     polygon.ConcatPolyMesh( // --------------------------------------------------
-        upper_tri_poly, lower_tri_poly, side_tri, print_debug,             // in
+        upper_tri_poly, lower_tri_poly, side_tri, PrintDebug,             // in
         all_tri);                                                          // out
 
     // check if the points in cloud are in created volume
