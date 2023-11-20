@@ -9,7 +9,6 @@
 #include <limits>
 
 using namespace pcl;
-using namespace pcl::io;
 using namespace Eigen;
 
 namespace ARStar {

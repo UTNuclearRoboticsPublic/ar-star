@@ -10,7 +10,7 @@ void LassoPointsCallback(const std_msgs::UInt8MultiArray msg)
 int main(int argc, char **argv)
 {
     // lasso mode node
-    ros::init(argc, argv, "lasso_mode");
+    ros::init(argc, argv, "lasso_listener");
     ros::NodeHandle n;
 
     // subscribe to lasso messages from hololens
