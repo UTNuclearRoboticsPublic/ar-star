@@ -20,6 +20,7 @@ public:
 
     void EarClippingTriangulate(
         PointCloud<PointXYZ>::Ptr cloud,
+        bool PrintDebug,
         std::vector<Matrix3f>& poly_mesh,
         std::vector<int>& indexes)
     {
@@ -64,13 +65,17 @@ public:
             poly_mesh.push_back(triangle);
         }
 
-        PrintTriangleIndexes(triangulated_mesh, 1);
+        if (PrintDebug)
+        {
+            PrintTriangleIndexes(triangulated_mesh, 1);
+        }
     }
 
     void ExtrudeTriangulatedPolygon(
         const std::vector<Matrix3f>& PolyMesh,
         const std::vector<int>& Indexes, 
         const float& ExtrusionDist,
+        bool PrintDebug,
         std::vector<Matrix3f>& UpperPolyMesh,
         std::vector<Matrix3f>& LowerPolyMesh,
         std::vector<Vector3f>& UpperVertexes,
@@ -134,14 +139,19 @@ public:
 
         }
 
-        //PrintPolyMesh(LowerPolyMesh);
-        PrintVector3(UpperVertexes, 2);
-        PrintVector3(LowerVertexes, 3);
+        if (PrintDebug)
+        {
+            //PrintPolyMesh(LowerPolyMesh);
+            PrintVector3(UpperVertexes, 2);
+            PrintVector3(LowerVertexes, 3);
+        }
+
     }
 
     void WrapPolygon(
         const std::vector<Vector3f>& UpperVertices,
         const std::vector<Vector3f>& LowerVertices,
+        bool PrintDebug,
         std::vector<Vector3f>& InterlockedVertices,
         std::vector<int>& Indexes,
         std::vector<Matrix3f>& PolyMesh)
@@ -217,24 +227,29 @@ public:
         mesh_triangle_last.row(0) = InterlockedVertices[a];
         mesh_triangle_last.row(1) = InterlockedVertices[1];
         mesh_triangle_last.row(2) = InterlockedVertices[0];
-        PolyMesh.push_back(mesh_triangle_last);
+        PolyMesh.push_back(mesh_triangle_last);  
 
-        PrintVector3(InterlockedVertices, 4);
-        PrintIndexes(Indexes, 2);
+        if(PrintDebug)
+        {
+            PrintVector3(InterlockedVertices, 4);
+            PrintIndexes(Indexes, 2);
+        } 
     }
 
     void ConcatPolyMesh(
         const std::vector<Matrix3f>& PolyMeshA,
         const std::vector<Matrix3f>& PolyMeshB,
         const std::vector<Matrix3f>& PolyMeshC,
+        bool PrintDebug,
         std::vector<Matrix3f>& OutPolyMesh)
     {
         std::vector<Matrix3f> ConcatPolyMesh;
         OutPolyMesh.reserve(PolyMeshA.size() + PolyMeshB.size() + PolyMeshC.size());
         OutPolyMesh.insert(OutPolyMesh.end(), PolyMeshA.begin(), PolyMeshA.end());
         OutPolyMesh.insert(OutPolyMesh.end(), PolyMeshB.begin(), PolyMeshB.end());
-        OutPolyMesh.insert(OutPolyMesh.end(), PolyMeshC.begin(), PolyMeshC.end());
-        std::cout << "OutPolyMesh: " << OutPolyMesh.size() << std::endl;
+        OutPolyMesh.insert(OutPolyMesh.end(), PolyMeshC.begin(), PolyMeshC.end()); 
+
+        if (PrintDebug) {std::cout << "OutPolyMesh: " << OutPolyMesh.size() << std::endl;} 
     }
 
     // ref: https://cs.nyu.edu/~panozzo/cg/02%20-%20Ray%20Tracing,%20C++.pdf
@@ -276,7 +291,6 @@ public:
 
         return (intersectionCount % 2) == 1; // if odd number of times its inside
     }
-
 
 private:
 

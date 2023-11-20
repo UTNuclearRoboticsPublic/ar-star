@@ -1,6 +1,6 @@
 # GetPointsInLasso.srv
-geometry_msgs/Polygon points
+geometry_msgs/Polygon lasso
 sensor_msgs/PointCloud2 cloud
-std_msgs/Float32 extrusion_depth
+std_msgs/Float64 extrusion_depth
 ---
 std_msgs/UInt8MultiArray lasso_points

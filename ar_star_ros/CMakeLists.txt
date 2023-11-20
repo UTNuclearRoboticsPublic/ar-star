@@ -44,5 +44,5 @@ add_dependencies(lasso_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXP
 target_link_libraries(lasso_listener ${catkin_LIBRARIES})
 
 add_executable(points_in_lasso_solver src/points_in_lasso_solver.cpp)
-target_link_libraries(points_in_lasso_solver ${catkin_LIBRARIES})
+target_link_libraries(points_in_lasso_solver ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(points_in_lasso_solver ar_star_ros_generate_messages_cpp)
