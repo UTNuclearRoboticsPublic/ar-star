@@ -18,7 +18,10 @@ class Lasso
 {
     public:
 
-    void EarClippingTriangulate(PointCloud<PointXYZ>::Ptr cloud)
+    void EarClippingTriangulate(
+        PointCloud<PointXYZ>::Ptr cloud,
+        std::vector<Matrix3f>& poly_mesh,
+        std::vector<int>& indexes)
     {
         PrintCloudXYZ(cloud);
 
@@ -43,8 +46,6 @@ class Lasso
 
         // Fill triangle vector
         Matrix3f triangle;
-        std::vector<Matrix3f> poly_mesh;
-        std::vector<int> indexes;
         for (size_t i = 0; i < triangulated_mesh.polygons.size (); ++i)
         {
             for (size_t j = 0; j < 3; ++j)
@@ -64,23 +65,6 @@ class Lasso
         }
 
         PrintTriangleIndexes(triangulated_mesh, 1);
-
-        std::vector<Matrix3f> upper_poly_mesh;
-        std::vector<Matrix3f> lower_poly_mesh;
-        std::vector<Matrix3f> side_poly_mesh;
-        std::vector<Matrix3f> combo_poly_mesh;
-        std::vector<Vector3f> upper_vertexes;
-        std::vector<Vector3f> lower_vertexes;
-        std::vector<Vector3f> interlocked_vertices;
-        std::vector<int> in;
-        ExtrudeTriangulatedPolygon(poly_mesh, indexes, 10, upper_poly_mesh, lower_poly_mesh, upper_vertexes, lower_vertexes);
-        WrapPolygon(upper_vertexes, lower_vertexes, interlocked_vertices, in, side_poly_mesh);
-        ConcatPolyMesh(upper_poly_mesh, lower_poly_mesh, side_poly_mesh, combo_poly_mesh);
-        Vector3f point(-180.0,140.0,-30.0);
-        bool isInside = IsPointInsideVolume(point, combo_poly_mesh);
-        std::cout << "isInside: " << isInside << std::endl;
-
-
     }
 
     void ExtrudeTriangulatedPolygon(
@@ -253,69 +237,48 @@ class Lasso
         std::cout << "OutPolyMesh: " << OutPolyMesh.size() << std::endl;
     }
 
-    bool IsPointInsideVolume(
+    // ref: https://cs.nyu.edu/~panozzo/cg/02%20-%20Ray%20Tracing,%20C++.pdf
+    bool IsPointInsideVolume( 
         const Vector3f& Point,
         const std::vector<Matrix3f>& PolyMesh)
     {
-        Vector3f ray_dir(1.0f, 0.0f, 0.0f);
-
-        int intersectionCount = 0;
-
-        Vector3f pa, pb, pc, edge_one, edge_two, norm_cross;
-
-        std::cout << "poly_mesh_size: " << PolyMesh.size() << std::endl;
+        Vector3f pa, pb, pc, p, N;
+        Vector3f ray_dir(2000.0f, 0.0f, 0.0f);
+        int intersectionCount {0};
         for (size_t i {0}; i < PolyMesh.size(); i++)
         {
-            
             // make Vector3f
             pa = PolyMesh[i].row(0);
             pb = PolyMesh[i].row(1);
             pc = PolyMesh[i].row(2);
 
-            // cross to get normal and scale
-            edge_one << pb - pa;                      
-            edge_two << pc - pa;                       
-            norm_cross << edge_one.cross(edge_two);
-            float a = edge_one.dot(norm_cross);
+            Vector3f b(Point - pa);
+            Matrix3f A;
+            A << pb - pa,
+                 pc - pa,
+                -ray_dir;
 
-            if (a > -std::numeric_limits<float>::epsilon() && a < std::numeric_limits<float>::epsilon())
+            Vector3f x = A.colPivHouseholderQr().solve(b);
+            float u, v, t;
+            u = x(0); // x position within triangle
+            v = x(1); // y position within triangle
+            t = x(2); // distance along ray
+
+            if (u>=0 && v>=0 && u+v<=1 && t>0) 
             {
-                std::cout << "ray parallel" << std::endl;
-                continue; // Ray is parallel to the triangle
-            }
-                
-
-            float f = 1.0 / a;
-            Vector3f s = Point - pa;
-            float u = f * s.dot(norm_cross);
-
-            if (u < 0.0 || u > 1.0)
-            {
-                std::cout << "hmmm" << std::endl;
-                continue; // hmmmmm
-            }
-            
-            Vector3f q = s.cross(edge_one);
-            float v = f * ray_dir.dot(q);
-
-            if (v < 0.0 || u + v > 1.0)
-                continue;
-
-            float t = f * edge_two.dot(q);
-
-            if (t > std::numeric_limits<float>::epsilon()) {
-                // Intersection found
+                p = Point + (t * ray_dir); // point of intersection
+                //N = (pb-pa).cross(pc-pa).normalized(); // noraml to the triangle at the intersection point
                 ++intersectionCount;
                 std::cout << "intersects: " << intersectionCount << std::endl;
+                std::cout << "intersection point: " << p << std::endl;
             }
-
         }
 
-        return (intersectionCount % 2) == 1;
+        return (intersectionCount % 2) == 1; // if odd number of times its inside
     }
 
 
-    private:
+private:
 
     void PrintTriangleIndexes(const PolygonMesh& triangulated_mesh, const int& PrintNum)
     {
@@ -521,8 +484,23 @@ int main()
     cloud->points.emplace_back( -179.734f, 114.345f, -65.254f);
     cloud->points.emplace_back( -176.79f, 94.411f,   -48.308f);
     cloud->points.emplace_back( -172.538f, 94.087f,  -27.986f);
+
+
     cloud->width = cloud->size ();
 
-    lasso_.EarClippingTriangulate(cloud);
+    float extrude_depth{5};
+    std::vector<int> indexes, final_indexes;
+    std::vector<Vector3f> upper_vertexes, lower_vertexes, interlocked_vertices;
+    std::vector<Matrix3f> poly_mesh, upper_poly_mesh, lower_poly_mesh, side_poly_mesh, combo_poly_mesh;
 
+    lasso_.EarClippingTriangulate(cloud, poly_mesh, indexes);
+    lasso_.ExtrudeTriangulatedPolygon(poly_mesh, indexes, extrude_depth, upper_poly_mesh, lower_poly_mesh, upper_vertexes, lower_vertexes);
+    lasso_.WrapPolygon(upper_vertexes, lower_vertexes, interlocked_vertices, final_indexes, side_poly_mesh);
+    lasso_.ConcatPolyMesh(upper_poly_mesh, lower_poly_mesh, side_poly_mesh, combo_poly_mesh);
+    
+    Vector3f point(-180.0, 140.0,-40.0);
+    bool isInside = lasso_.IsPointInsideVolume(point, combo_poly_mesh);
+    std::cout << "isInside: " << isInside << std::endl;
+
+    return 0;
 }
