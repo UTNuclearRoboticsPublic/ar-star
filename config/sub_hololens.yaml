@@ -31,6 +31,10 @@ params:
   spin_threads: 1
 
 publishers: [ # these are the topics to listen to on the robofleet servers
+
+]
+
+subscribers: [ # these are the topics to subscribe to on the robofleet server
   {
     client_topic: "/junk/empty",
     rbf_topic: "/junk/empty",
@@ -78,9 +82,10 @@ publishers: [ # these are the topics to listen to on the robofleet servers
     type: "sensor_msgs/PointCloud2",
     no_drop: true,
     queue: 10
+  },
+  {
+    client_topic: "/hololens/surface_repair/polygon_points",
+    rbf_topic: "/hololens/surface_repair/polygon_points",
+    type: "geometry_msgs/PolygonStamped"
   }
-]
-
-subscribers: [ # these are the topics to publish to the robofleet server
-
 ]
