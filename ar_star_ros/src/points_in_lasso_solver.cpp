@@ -91,7 +91,7 @@ bool HandleRequest(
         lasso_poly, PrintDebug,                                           // in
         tri_poly, tri_poly_indexes);                                       // out
     polygon.ExtrudeTriangulatedPolygon( // --------------------------------------
-        tri_poly, tri_poly_indexes, Req.extrusion_depth.data, PrintDebug, // in
+        tri_poly, tri_poly_indexes, Req.extrusion_depth, PrintDebug, // in
         upper_tri_poly, lower_tri_poly,upper_vertexes, lower_vertexes);    // out
     polygon.WrapPolygon( // -----------------------------------------------------
         upper_vertexes, lower_vertexes, PrintDebug,                       // in

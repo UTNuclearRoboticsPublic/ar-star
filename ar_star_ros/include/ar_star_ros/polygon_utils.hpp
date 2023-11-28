@@ -259,7 +259,7 @@ public:
         bool PrintDebug)
     {
         Vector3f pa, pb, pc, p, N;
-        Vector3f ray_dir(2000.0f, 0.0f, 0.0f);
+        Vector3f ray_dir(2000.0f, 1000.0f, 0.0f);
         int intersectionCount {0};
         for (size_t i {0}; i < PolyMesh.size(); i++)
         {

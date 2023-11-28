@@ -31,7 +31,11 @@ params:
   spin_threads: 1
 
 publishers: [ # these are the topics to publish to the robofleet server
-
+  {
+    client_topic: "/server/surface_repair/lasso_points",
+    rbf_topic: "/server/surface_repair/lasso_points",
+    type: "std_msgs/UInt8MultiArray"
+  }
 ]
 
 subscribers: [ # these are the topics to subscribe to on the robofleet server
@@ -87,5 +91,10 @@ subscribers: [ # these are the topics to subscribe to on the robofleet server
     client_topic: "/hololens/surface_repair/polygon_points",
     rbf_topic: "/hololens/surface_repair/polygon_points",
     type: "geometry_msgs/PolygonStamped"
+  },
+  {
+    client_topic: "/hololens/surface_repair/highlighted_points",
+    rbf_topic: "/hololens/surface_repair/highlighted_points",
+    type: "std_msgs/UInt8MultiArray"
   }
 ]

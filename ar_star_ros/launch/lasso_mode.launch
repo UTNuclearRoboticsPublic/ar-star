@@ -1,5 +1,17 @@
-<!-- my_launch_file.launch -->
 <launch>
+  <!-- load lasso mode params -->
+  <rosparam file="$(find ar_star_ros)/params/lasso_mode.yaml" command="load"/>
+  
+  <!--launch robofleet with desired config file-->
+  <arg name="config_file" value="$(find ar_star_ros)/../config/ar_star_rf_client_config.yaml"/>
+	<node
+		name    = "robofleet_client"
+		pkg     = "robofleet_client"
+		type    = "client"
+		output  = "screen"
+		args	  = "$(arg config_file)"
+	/>
+
   <!-- Launch the service server -->
   <node pkg="ar_star_ros" type="points_in_lasso_solver" name="points_in_lasso_solver" output="screen" />
 
