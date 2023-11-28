@@ -45,7 +45,7 @@ void GetPointsInPolygon(
 			rgb_offset = point_field.offset;
 		}
 		else {
-			std::cout << "More parameters than x, y, z, rgb were found. Ignoring." << std::endl;
+			//std::cout << "More parameters than x, y, z, rgb were found. Ignoring." << std::endl;
 		}
 	}
 
@@ -63,7 +63,7 @@ void GetPointsInPolygon(
 			point(2) = *(reinterpret_cast<const float*>(Cloud.data.data() + data_index + z_offset)); // z [m]
 
             // check if point is inside the volume
-            Points.data[i] = static_cast<uint8_t>(polygon.IsPointInsideVolume(point, Triangles, PrintDebug));
+            Points.data[i] = static_cast<uint8_t>(polygon.IsPointInsideVolume(point, Triangles, false));
 			i++;
 		}
 	}
@@ -82,7 +82,7 @@ bool HandleRequest(
     pcl::PointCloud<pcl::PointXYZ>::Ptr lasso_poly(
         new pcl::PointCloud<pcl::PointXYZ>);
     lasso_poly->height = 1;
-    for (const auto& point : Req.lasso.points)
+    for (const auto& point : Req.lasso.polygon.points)
         lasso_poly->points.emplace_back(point.x, point.y, point.z);
     lasso_poly->width = lasso_poly->size();
 
@@ -97,7 +97,7 @@ bool HandleRequest(
         upper_vertexes, lower_vertexes, PrintDebug,                       // in
         interlocked_vertices, side_indexes, side_tri);                     // out
     polygon.ConcatPolyMesh( // --------------------------------------------------
-        upper_tri_poly, lower_tri_poly, side_tri, PrintDebug,             // in
+        upper_tri_poly, lower_tri_poly, side_tri, false,             // in
         all_tri);                                                          // out
 
     // check if the points in cloud are in created volume
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
 
     // standard ros service
-    ros::ServiceServer service = n.advertiseService("GetPointsInLasso", HandleRequest);
+    ros::ServiceServer service = n.advertiseService("get_points_in_lasso", HandleRequest);
     ROS_INFO("GetPointsInLasso service is ready.");
     ros::spin();
 

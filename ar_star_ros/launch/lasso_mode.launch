@@ -1,0 +1,8 @@
+<!-- my_launch_file.launch -->
+<launch>
+  <!-- Launch the service server -->
+  <node pkg="ar_star_ros" type="points_in_lasso_solver" name="points_in_lasso_solver" output="screen" />
+
+  <!-- Launch the service client -->
+  <node pkg="ar_star_ros" type="lasso_listener" name="lasso_listener" output="screen" />
+</launch>

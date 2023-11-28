@@ -1,5 +1,5 @@
 # GetPointsInLasso.srv
-geometry_msgs/Polygon lasso
+geometry_msgs/PolygonStamped lasso
 sensor_msgs/PointCloud2 cloud
 std_msgs/Float64 extrusion_depth
 ---
