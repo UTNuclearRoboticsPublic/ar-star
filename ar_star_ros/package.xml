@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>ar_star_ros</name>
-  <version>0.0.0</version>
-  <description>The ar_star_ros package</description>
+  <version>0.0.1</version>
+  <description>AR-STAR ROS package associated with ARStarUnreal plugin.</description>
 
   <maintainer email="fregal@utexas.edu">Frank Regal</maintainer>
-  <license>TODO</license>
+  <license file="COPYRIGHT.txt">Propretiary</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
