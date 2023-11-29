@@ -5,7 +5,7 @@
   <description>AR-STAR ROS package associated with ARStarUnreal plugin.</description>
 
   <maintainer email="fregal@utexas.edu">Frank Regal</maintainer>
-  <license file="COPYRIGHT.txt">Propretiary</license>
+  <license>Propretiary</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>

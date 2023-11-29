@@ -40,7 +40,7 @@ using namespace Eigen;
 
 namespace ARStar {
 
-class PolygonUtils
+class LassoUtils
 {
 
 public:

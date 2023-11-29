@@ -2,5 +2,6 @@
 geometry_msgs/PolygonStamped lasso
 sensor_msgs/PointCloud2 cloud
 float32 extrusion_depth
+float32 uniform_radius
 ---
 std_msgs/UInt8MultiArray lasso_points

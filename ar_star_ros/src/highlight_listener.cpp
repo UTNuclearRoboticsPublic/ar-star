@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : AR-STAR Lasso Mode Listener Node
+//      Title     : AR-STAR Highlight Mode Listener Node
 //      Project   : Nuclear and Applied Robotics Group (NRG) AR-STAR Project
 //      Copyright : Copyright© The University of Texas at Austin, 2023. All rights reserved.
 //                
@@ -29,72 +29,71 @@
 #include "std_msgs/UInt8MultiArray.h"
 #include "geometry_msgs/PolygonStamped.h"
 #include "sensor_msgs/PointCloud2.h"
-#include "ar_star_ros/lasso_utils.hpp"
-#include "ar_star_ros/GetPointsInLasso.h"
+#include "ar_star_ros/highlight_utils.hpp"
+#include "ar_star_ros/GetPointsInHighlight.h"
 
 ros::ServiceClient client_;
-ros::Publisher lasso_points_pub_;
+ros::Publisher highlight_points_pub_;
 bool isCloudCallbackTriggered_ = false;
-bool isLassoPointsCallbackTriggered_ = false;
+bool isHighlightPointsCallbackTriggered_ = false;
 sensor_msgs::PointCloud2 cloud_;
-geometry_msgs::PolygonStamped polygon_;
-ar_star_ros::GetPointsInLasso srv_;
+geometry_msgs::PolygonStamped highlight_array_;
+ar_star_ros::GetPointsInHighlight srv_;
 
 void ServiceCall()
 {
-    if (isCloudCallbackTriggered_ && isLassoPointsCallbackTriggered_)
+    if (isCloudCallbackTriggered_ && isHighlightPointsCallbackTriggered_)
     {
         // call service
         if (client_.call(srv_))
         {
-            lasso_points_pub_.publish(srv_.response.lasso_points);
+            highlight_points_pub_.publish(srv_.response.tagged_points);
             std::cout << std::endl << "Service Complete." << std::endl;
         }
         else
         {
-          ROS_ERROR("Failed to call service GetPointsInLasso");
+          ROS_ERROR("Failed to call service GetPointsInHighlight");
           return;
         }
         isCloudCallbackTriggered_ = false;
-        isLassoPointsCallbackTriggered_ = false;
+        isHighlightPointsCallbackTriggered_ = false;
     }
 }
 
 void CloudCallback(const sensor_msgs::PointCloud2::ConstPtr& Msg)
 {
     std::cout << std::endl << "pointcloud message received." << std::endl;
-    srv_.request.cloud = *Msg;
     isCloudCallbackTriggered_ = true;
+     srv_.request.cloud = *Msg;
     ServiceCall();
 }
 
-void LassoPointsCallback(const geometry_msgs::PolygonStamped::ConstPtr& Msg)
+void HighlightPointsCallback(const geometry_msgs::PolygonStamped::ConstPtr& Msg)
 {
-    std::cout << std::endl << "polygon message received." << std::endl;
-    srv_.request.lasso = *Msg;
-    isLassoPointsCallbackTriggered_ = true;
+    std::cout << std::endl << "highlight message received." << std::endl;
+    isHighlightPointsCallbackTriggered_ = true;
+    srv_.request.highlight = *Msg;
     ServiceCall();
 }
 
 int main(int argc, char **argv)
 {
-    // lasso mode node
-    ros::init(argc, argv, "lasso_listener");
+    // highligh mode node
+    ros::init(argc, argv, "highlight_listener");
     ros::NodeHandle n;
 
-    // subscribe to cloud & polygon messages from hololens
+    // subscribe to cloud & highlight point messages from hololens
     ros::Subscriber cloud_sub = n.subscribe("/vaultbot/surface_repair/surface_points", 1000, CloudCallback);
-    ros::Subscriber poly_sub = n.subscribe("/hololens/surface_repair/polygon_points", 1000, LassoPointsCallback);
+    ros::Subscriber poly_sub = n.subscribe("/hololens/surface_repair/highlight/points", 1000, HighlightPointsCallback);
 
     // create publisher for which points are inside lasso
-    lasso_points_pub_ = n.advertise<std_msgs::UInt8MultiArray>("/server/surface_repair/lasso_points", 2);
+    highlight_points_pub_ = n.advertise<std_msgs::UInt8MultiArray>("/server/surface_repair/highlight/pc_points_tagged", 2);
 
     // create service client object
-    client_ = n.serviceClient<ar_star_ros::GetPointsInLasso>("get_points_in_lasso");
+    client_ = n.serviceClient<ar_star_ros::GetPointsInHighlight>("get_points_in_highlight");
 
     // get extrusion depth
-    n.param<float>("extrusion_depth", srv_.request.extrusion_depth, 0.1);
-    n.param<float>("l_uniform_radius", srv_.request.uniform_radius, 0.0);
+    n.param<float>("hl_uniform_radius", srv_.request.uniform_radius, 0.0);
 
     // standard ros spinner
     ros::spin();

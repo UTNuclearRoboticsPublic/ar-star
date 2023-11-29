@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-//      Title     : AR-STAR Lasso Mode Service Solver
+//      Title     : AR-STAR Highlight Mode Service Solver
 //      Project   : Nuclear and Applied Robotics Group (NRG) AR-STAR Project
 //      Copyright : Copyright© The University of Texas at Austin, 2023. All rights reserved.
 //                
@@ -32,21 +32,16 @@
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
-#include "ar_star_ros/lasso_utils.hpp"
 #include "ar_star_ros/highlight_utils.hpp"
-#include "ar_star_ros/GetPointsInLasso.h"
+#include "ar_star_ros/GetPointsInHighlight.h"
 
-ARStar::LassoUtils lasso_util;
 ARStar::HighlightUtils highlight_util;
-bool PrintDebug = true;
 
-void GetPointsInPolygon(
+void GetPointsInHighlight(
     const sensor_msgs::PointCloud2& Cloud,
-    const std::vector<Matrix3f>& Triangles,
     const PointCloud<PointXYZ>::Ptr HighlightedPoints,
     const float& UniformRadius,
-    std_msgs::UInt8MultiArray& Points
-    )
+    std_msgs::UInt8MultiArray& Points)
 {
     // init
 	int i{ 0 };
@@ -94,15 +89,15 @@ void GetPointsInPolygon(
 			point(2) = *(reinterpret_cast<const float*>(Cloud.data.data() + data_index + z_offset)); // z [m]
 
             // check if point is inside the highligh first, if not check if inside the volume
-            Points.data[i] = highlight_util.IsPointInHighlight(point, UniformRadius, HighlightedPoints) ? 1 : (lasso_util.IsPointInsideVolume(point, Triangles, false) ? 1 : 0);
+            Points.data[i] = highlight_util.IsPointInHighlight(point, UniformRadius, HighlightedPoints) ? 1 : 0;
 			i++;
 		}
 	}
 }
 
 bool HandleRequest(
-    ar_star_ros::GetPointsInLasso::Request &Req,
-    ar_star_ros::GetPointsInLasso::Response &Res)
+    ar_star_ros::GetPointsInHighlight::Request &Req,
+    ar_star_ros::GetPointsInHighlight::Response &Res)
 {
     // init
     std::vector<int> tri_poly_indexes, side_indexes;
@@ -110,31 +105,15 @@ bool HandleRequest(
     std::vector<Eigen::Matrix3f> tri_poly, upper_tri_poly, lower_tri_poly, side_tri, all_tri;
 
     // convert incoming lasso points into PCL cloud for further processing
-    pcl::PointCloud<pcl::PointXYZ>::Ptr lasso_poly(
+    pcl::PointCloud<pcl::PointXYZ>::Ptr highlight_array(
         new pcl::PointCloud<pcl::PointXYZ>);
-    lasso_poly->height = 1;
-    for (const auto& point : Req.lasso.polygon.points)
-        lasso_poly->points.emplace_back(point.x, point.y, point.z);
-    lasso_poly->width = lasso_poly->size();
+    highlight_array->height = 1;
+    for (const auto& point : Req.highlight.polygon.points)
+        highlight_array->points.emplace_back(point.x, point.y, point.z);
+    highlight_array->width = highlight_array->size();
 
-    // create triangulated volume from lasso polygon
-    lasso_util.EarClippingTriangulate( // ------------------------------------------
-        lasso_poly, PrintDebug,                                            // in
-        tri_poly, tri_poly_indexes);                                       // out
-    lasso_util.ExtrudeTriangulatedPolygon( // --------------------------------------
-        tri_poly, tri_poly_indexes, Req.extrusion_depth, PrintDebug,       // in
-        upper_tri_poly, lower_tri_poly,upper_vertexes, lower_vertexes);    // out
-    lasso_util.WrapPolygon( // -----------------------------------------------------
-        upper_vertexes, lower_vertexes, PrintDebug,                        // in
-        interlocked_vertices, side_indexes, side_tri);                     // out
-    lasso_util.ConcatPolyMesh( // --------------------------------------------------
-        upper_tri_poly, lower_tri_poly, side_tri, false,                   // in
-        all_tri);                                                          // out
-
-    // check if the points in cloud are in created volume
-    GetPointsInPolygon(
-        Req.cloud, all_tri, lasso_poly, Req.uniform_radius, // in 
-        Res.lasso_points);                                 // out
+    // get points inside cloud
+    GetPointsInHighlight(Req.cloud, highlight_array, Req.uniform_radius, Res.tagged_points);
 
     return true;
 }
@@ -142,12 +121,12 @@ bool HandleRequest(
 int main(int argc, char **argv)
 {
     // init
-    ros::init(argc, argv, "points_in_lasso_solver");
+    ros::init(argc, argv, "highlight_solver");
     ros::NodeHandle n;
 
     // standard ros service
-    ros::ServiceServer service = n.advertiseService("get_points_in_lasso", HandleRequest);
-    ROS_INFO("GetPointsInLasso service is ready.");
+    ros::ServiceServer service = n.advertiseService("get_points_in_highlight", HandleRequest);
+    ROS_INFO("GetPointsInHighlight service is ready.");
     ros::spin();
 
     return 0;

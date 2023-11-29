@@ -10,6 +10,7 @@ add_service_files(
   srv
   FILES
   GetPointsInLasso.srv
+  GetPointsInHighlight.srv
 )
 
 generate_messages(
@@ -39,6 +40,10 @@ add_definitions(
   ${PCL_DEFINITIONS}
 )
 
+add_executable(highlight_listener src/highlight_listener.cpp)
+add_dependencies(highlight_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(highlight_listener ${catkin_LIBRARIES})
+
 add_executable(lasso_listener src/lasso_listener.cpp)
 add_dependencies(lasso_listener ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(lasso_listener ${catkin_LIBRARIES})
@@ -46,3 +51,7 @@ target_link_libraries(lasso_listener ${catkin_LIBRARIES})
 add_executable(points_in_lasso_solver src/points_in_lasso_solver.cpp)
 target_link_libraries(points_in_lasso_solver ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(points_in_lasso_solver ar_star_ros_generate_messages_cpp)
+
+add_executable(highlight_solver src/highlight_solver.cpp)
+target_link_libraries(highlight_solver ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_dependencies(highlight_solver ar_star_ros_generate_messages_cpp)

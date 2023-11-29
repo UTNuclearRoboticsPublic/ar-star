@@ -1,0 +1,6 @@
+# GetPointsInHighlight.srv
+geometry_msgs/PolygonStamped highlight
+sensor_msgs/PointCloud2 cloud
+float32 uniform_radius
+---
+std_msgs/UInt8MultiArray tagged_points
