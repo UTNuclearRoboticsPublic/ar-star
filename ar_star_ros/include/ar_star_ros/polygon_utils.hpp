@@ -282,19 +282,21 @@ public:
 
             if (u>=0 && v>=0 && u+v<=1 && t>0) 
             {
-                p = Point + (t * ray_dir); // point of intersection
+                //p = Point + (t * ray_dir); // point of intersection
                 //N = (pb-pa).cross(pc-pa).normalized(); // noraml to the triangle at the intersection point
                 ++intersectionCount;
-                if (PrintDebug)
-                {
-                    std::cout << "intersects: " << intersectionCount << std::endl;
-                    std::cout << "intersection point: " << p << std::endl;
-                }
+                // if (PrintDebug)
+                // {
+                //     std::cout << "intersects: " << intersectionCount << std::endl;
+                //     std::cout << "intersection point: " << p << std::endl;
+                // }
             }
         }
 
         return (intersectionCount % 2) == 1; // if odd number of times its inside
     }
+
+
 
 private:
 

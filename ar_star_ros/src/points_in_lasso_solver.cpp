@@ -101,7 +101,9 @@ bool HandleRequest(
         all_tri);                                                          // out
 
     // check if the points in cloud are in created volume
-    GetPointsInPolygon(Req.cloud, all_tri, Res.lasso_points);
+    GetPointsInPolygon(
+        Req.cloud, all_tri, // in 
+        Res.lasso_points);  // out
 
     return true;
 }
