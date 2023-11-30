@@ -48,7 +48,7 @@ void ServiceCall()
         if (client_.call(srv_))
         {
             lasso_points_pub_.publish(srv_.response.lasso_points);
-            std::cout << std::endl << "Service Complete." << std::endl;
+            ROS_WARN("Lasso Service Complete.\n");
         }
         else
         {
@@ -62,7 +62,7 @@ void ServiceCall()
 
 void CloudCallback(const sensor_msgs::PointCloud2::ConstPtr& Msg)
 {
-    std::cout << std::endl << "pointcloud message received." << std::endl;
+    ROS_WARN("sensor_msgs/PointCloud2 msg received.");
     srv_.request.cloud = *Msg;
     isCloudCallbackTriggered_ = true;
     ServiceCall();
@@ -70,7 +70,7 @@ void CloudCallback(const sensor_msgs::PointCloud2::ConstPtr& Msg)
 
 void LassoPointsCallback(const geometry_msgs::PolygonStamped::ConstPtr& Msg)
 {
-    std::cout << std::endl << "polygon message received." << std::endl;
+    ROS_WARN("geometry_msgs/PolygonStamped msg received.");
     srv_.request.lasso = *Msg;
     isLassoPointsCallbackTriggered_ = true;
     ServiceCall();

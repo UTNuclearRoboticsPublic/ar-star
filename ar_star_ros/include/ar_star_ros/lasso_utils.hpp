@@ -36,6 +36,18 @@
 #include <iostream>
 #include <limits>
 
+#ifdef DEBUG // catkin build with -DCMAKE_CXX_FLAGS="-DDEBUG" to enable debug print statements
+#define DEBUG_PRINT_TRIANGLE_INDEXES(mesh, num) PrintTriangleIndexes(mesh, num)
+#define DEBUG_PRINT_INDEXES(index, num) PrintIndexes(index, num)
+#define DEBUG_PRINT_CLOUD_XYZ(cloud) PrintCloudXYZ(cloud)
+#define DEBUG_PRINT_VECTOR(vector, num) PrintVector3(vector, num)
+#else
+#define DEBUG_PRINT_TRIANGLE_INDEXES(mesh, num)
+#define DEBUG_PRINT_INDEXES(index, num)
+#define DEBUG_PRINT_CLOUD_XYZ(cloud)
+#define DEBUG_PRINT_VECTOR(vector, num)
+#endif
+
 using namespace pcl;
 using namespace Eigen;
 
@@ -48,11 +60,10 @@ public:
 
     void EarClippingTriangulate(
         PointCloud<PointXYZ>::Ptr cloud,
-        bool PrintDebug,
         std::vector<Matrix3f>& poly_mesh,
         std::vector<int>& indexes)
     {
-        PrintCloudXYZ(cloud);
+        DEBUG_PRINT_CLOUD_XYZ(cloud);
 
         Vertices vertices;
         vertices.vertices.resize (cloud->size ());
@@ -85,25 +96,16 @@ public:
                                    cloud->points[k].y,
                                    cloud->points[k].z;
             }
-            // for (int i = 0; i < triangle.rows(); ++i) {
-            //     for (int j = 0; j < triangle.cols(); ++j) {
-            //     std::cout << "Element at (" << i << ", " << j << ") is: " << triangle(i, j) << std::endl;
-            //     }
-            // }
             poly_mesh.push_back(triangle);
         }
-
-        if (PrintDebug)
-        {
-            PrintTriangleIndexes(triangulated_mesh, 1);
-        }
+        
+        DEBUG_PRINT_TRIANGLE_INDEXES(triangulated_mesh, 1);
     }
 
     void ExtrudeTriangulatedPolygon(
         const std::vector<Matrix3f>& PolyMesh,
         const std::vector<int>& Indexes, 
         const float& ExtrusionDist,
-        bool PrintDebug,
         std::vector<Matrix3f>& UpperPolyMesh,
         std::vector<Matrix3f>& LowerPolyMesh,
         std::vector<Vector3f>& UpperVertexes,
@@ -166,20 +168,14 @@ public:
             LowerPolyMesh[i] = lower_triangle;
 
         }
-
-        if (PrintDebug)
-        {
-            //PrintPolyMesh(LowerPolyMesh);
-            PrintVector3(UpperVertexes, 2);
-            PrintVector3(LowerVertexes, 3);
-        }
-
+        
+        DEBUG_PRINT_VECTOR(UpperVertexes, 2);
+        DEBUG_PRINT_VECTOR(LowerVertexes, 3);
     }
 
     void WrapPolygon(
         const std::vector<Vector3f>& UpperVertices,
         const std::vector<Vector3f>& LowerVertices,
-        bool PrintDebug,
         std::vector<Vector3f>& InterlockedVertices,
         std::vector<int>& Indexes,
         std::vector<Matrix3f>& PolyMesh)
@@ -257,18 +253,14 @@ public:
         mesh_triangle_last.row(2) = InterlockedVertices[0];
         PolyMesh.push_back(mesh_triangle_last);  
 
-        if(PrintDebug)
-        {
-            PrintVector3(InterlockedVertices, 4);
-            PrintIndexes(Indexes, 2);
-        } 
+        DEBUG_PRINT_INDEXES(Indexes, 2);
+        DEBUG_PRINT_VECTOR(InterlockedVertices, 4);
     }
 
     void ConcatPolyMesh(
         const std::vector<Matrix3f>& PolyMeshA,
         const std::vector<Matrix3f>& PolyMeshB,
         const std::vector<Matrix3f>& PolyMeshC,
-        bool PrintDebug,
         std::vector<Matrix3f>& OutPolyMesh)
     {
         std::vector<Matrix3f> ConcatPolyMesh;
@@ -276,8 +268,6 @@ public:
         OutPolyMesh.insert(OutPolyMesh.end(), PolyMeshA.begin(), PolyMeshA.end());
         OutPolyMesh.insert(OutPolyMesh.end(), PolyMeshB.begin(), PolyMeshB.end());
         OutPolyMesh.insert(OutPolyMesh.end(), PolyMeshC.begin(), PolyMeshC.end()); 
-
-        if (PrintDebug) {std::cout << "OutPolyMesh: " << OutPolyMesh.size() << std::endl;} 
     }
 
     // ref: https://cs.nyu.edu/~panozzo/cg/02%20-%20Ray%20Tracing,%20C++.pdf
@@ -310,14 +300,11 @@ public:
 
             if (u>=0 && v>=0 && u+v<=1 && t>0) 
             {
-                //p = Point + (t * ray_dir); // point of intersection
-                //N = (pb-pa).cross(pc-pa).normalized(); // noraml to the triangle at the intersection point
+                /*
+                p = Point + (t * ray_dir);             // point of intersection
+                N = (pb-pa).cross(pc-pa).normalized(); // normal to the triangle at the intersection point
+                */
                 ++intersectionCount;
-                // if (PrintDebug)
-                // {
-                //     std::cout << "intersects: " << intersectionCount << std::endl;
-                //     std::cout << "intersection point: " << p << std::endl;
-                // }
             }
         }
 
@@ -346,20 +333,14 @@ public:
 
 private:
 
-    void PrintTriangleIndexes(const PolygonMesh& triangulated_mesh, const int& PrintNum)
+    void PrintTriangleIndexes(const PolygonMesh& TriangulatedMesh, const int& PrintNum)
     {
-        //std::cout << "poly size: " << triangulated_mesh.polygons.size () << std::endl;
-        // for (const auto &polygon : triangulated_mesh.polygons)
-        // {
-        //     //std::cout << "poly vert size: " << polygon.vertices.XYZ << std::endl;
-        // }
-
         std::cout << "index" << std::to_string(PrintNum) << " = [" << std::endl;
-        for (int pi = 0; pi < static_cast<int> (triangulated_mesh.polygons.size ()); ++pi)
+        for (int pi = 0; pi < static_cast<int> (TriangulatedMesh.polygons.size ()); ++pi)
         {
           for (int vi = 0; vi < 3; ++vi)
           {
-              std::cout << " " << triangulated_mesh.polygons[pi].vertices[vi];
+              std::cout << " " << TriangulatedMesh.polygons[pi].vertices[vi];
               //Indexes.push_back(triangulated_mesh.polygons[pi].vertices[vi]);
           }
           std::cout << std::endl;
@@ -369,11 +350,6 @@ private:
 
     void PrintIndexes(const std::vector<int>& Index, const int& PrintNum)
     {
-        //std::cout << "poly size: " << triangulated_mesh.polygons.size () << std::endl;
-        // for (const auto &polygon : triangulated_mesh.polygons)
-        // {
-        //     //std::cout << "poly vert size: " << polygon.vertices.XYZ << std::endl;
-        // }
         int count = 0;
         std::cout << "index" << std::to_string(PrintNum) << " = [" << std::endl;
         for (int i = 0; i < (Index.size() / 3); i++)
@@ -387,50 +363,27 @@ private:
             count += 3;
         }
         std::cout << "];" << std::endl;
-
-        // std::cout << "index" << std::to_string(PrintNum) << " = [" << std::endl;
-        // for (int pi = 0; pi < Index.size(); pi++)
-        // {
-        //   for (int vi = 0; vi < 3; ++vi)
-        //   {
-        //       std::cout << " " << Index[pi+vi];
-        //       //Indexes.push_back(triangulated_mesh.polygons[pi].vertices[vi]);
-        //   }
-        //   std::cout << std::endl;
-        // }
-        // std::cout << "];" << std::endl;
     }
 
-    void PrintCloudXYZ(PointCloud<PointXYZ>::Ptr cloud){
+    void PrintCloudXYZ(PointCloud<PointXYZ>::Ptr Cloud)
+    {
         std::cout << "X = [" << std::endl;
-        for (size_t i = 0; i < cloud->size(); ++i) {
-            std::cout << cloud->points[i].x << std::endl;
+        for (size_t i = 0; i < Cloud->size(); ++i) {
+            std::cout << Cloud->points[i].x << std::endl;
         }
         std::cout << "];" << std::endl;
         std::cout << std::endl;
 
         std::cout << "Y = [" << std::endl;
-        for (size_t i = 0; i < cloud->size(); ++i) {
-            std::cout << cloud->points[i].y << std::endl;
+        for (size_t i = 0; i < Cloud->size(); ++i) {
+            std::cout << Cloud->points[i].y << std::endl;
         }
         std::cout << "];" << std::endl;
         std::cout << std::endl;
 
         std::cout << "Z = [" << std::endl;
-        for (size_t i = 0; i < cloud->size(); ++i) {
-            std::cout << cloud->points[i].z << std::endl;
-        }
-        std::cout << "];" << std::endl;
-        std::cout << std::endl;
-    }
-
-    void PrintPolyMesh(const std::vector<Matrix3f>& Mesh)
-    {
-        
-        for (const Matrix3f& triangle : Mesh)
-        {
-            std::cout << "Triangle = [" << std::endl;
-            std::cout << triangle << std::endl;
+        for (size_t i = 0; i < Cloud->size(); ++i) {
+            std::cout << Cloud->points[i].z << std::endl;
         }
         std::cout << "];" << std::endl;
         std::cout << std::endl;
@@ -459,55 +412,5 @@ private:
         std::cout << "];" << std::endl;
         std::cout << std::endl;
     }
-
-    void PrintVector3Lower(const std::vector<Vector3f>& Vector)
-    {
-        std::cout << "X3 = [" << std::endl;
-        for (size_t i = 0; i < Vector.size(); ++i) {
-            std::cout << Vector[i](0) << std::endl;
-        }
-        std::cout << "];" << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "Y3 = [" << std::endl;
-        for (size_t i = 0; i < Vector.size(); ++i) {
-            std::cout << Vector[i](1) << std::endl;
-        }
-        std::cout << "];" << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "Z3 = [" << std::endl;
-        for (size_t i = 0; i < Vector.size(); ++i) {
-            std::cout << Vector[i](2) << std::endl;
-        }
-        std::cout << "];" << std::endl;
-        std::cout << std::endl;
-    }
-
-    void PrintVector3Combo(const std::vector<Vector3f>& Vector)
-    {
-        std::cout << "X4 = [" << std::endl;
-        for (size_t i = 0; i < Vector.size(); ++i) {
-            std::cout << Vector[i](0) << std::endl;
-        }
-        std::cout << "];" << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "Y4 = [" << std::endl;
-        for (size_t i = 0; i < Vector.size(); ++i) {
-            std::cout << Vector[i](1) << std::endl;
-        }
-        std::cout << "];" << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "Z4 = [" << std::endl;
-        for (size_t i = 0; i < Vector.size(); ++i) {
-            std::cout << Vector[i](2) << std::endl;
-        }
-        std::cout << "];" << std::endl;
-        std::cout << std::endl;
-    }
-
-
 };
 } // ARStar

@@ -138,25 +138,25 @@ bool HandleRequest(
 
     // create triangulated volume from lasso polygon
     lasso_util.EarClippingTriangulate( // ------------------------------------------
-        lasso_poly, PrintDebug,                                            // in
-        tri_poly, tri_poly_indexes);                                       // out
+        lasso_poly,                                                           // in
+        tri_poly, tri_poly_indexes);                                          // out
     lasso_util.ExtrudeTriangulatedPolygon( // --------------------------------------
-        tri_poly, tri_poly_indexes, Req.extrusion_depth, PrintDebug,       // in
-        upper_tri_poly, lower_tri_poly,upper_vertexes, lower_vertexes);    // out
+        tri_poly, tri_poly_indexes, Req.extrusion_depth,                      // in
+        upper_tri_poly, lower_tri_poly,upper_vertexes, lower_vertexes);       // out
     lasso_util.WrapPolygon( // -----------------------------------------------------
-        upper_vertexes, lower_vertexes, PrintDebug,                        // in
-        interlocked_vertices, side_indexes, side_tri);                     // out
+        upper_vertexes, lower_vertexes,                                       // in
+        interlocked_vertices, side_indexes, side_tri);                        // out
     lasso_util.ConcatPolyMesh( // --------------------------------------------------
-        upper_tri_poly, lower_tri_poly, side_tri, false,                   // in
-        all_tri);                                                          // out
-    lasso_util.GetMaxSquaredDistanceInPolygon(  // ---------------------------------
-        lasso_poly,                                                        // in
-        max_sqr_dist);                                                     // out
-
-    // check if the points in cloud are in created volume
-    GetPointsInPolygon(
-        Req.cloud, all_tri, lasso_poly, Req.uniform_radius, max_sqr_dist,  // in 
-        Res.lasso_points);                                                 // out
+        upper_tri_poly, lower_tri_poly, side_tri,                             // in
+        all_tri);                                                             // out
+    lasso_util.GetMaxSquaredDistanceInPolygon( // ----------------------------------
+        lasso_poly,                                                           // in
+        max_sqr_dist);                                                        // out
+   
+    // find all points in the polygon
+    GetPointsInPolygon( // ---------------------------------------------------------   
+        Req.cloud, all_tri, lasso_poly, Req.uniform_radius, max_sqr_dist,     // in 
+        Res.lasso_points);                                                    // out
 
     return true;
 }

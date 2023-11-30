@@ -43,6 +43,7 @@ namespace ARStar {
 class HighlightUtils
 {
 public:
+
     bool IsPointInHighlight(
 		const Eigen::Vector3f& CloudPoint,
 		const float& UniformRadius,
@@ -63,7 +64,7 @@ public:
 								  HighlightedPoints->points[i].z;
 
 			// calculate squared distance
-			square_dist = (CloudPoint- highligh_point_loc).squaredNorm();
+			square_dist = (CloudPoint - highligh_point_loc).squaredNorm();
 			
 			// return true if inside the uniform radius sphere
 			if (square_dist < max_square_dist)
