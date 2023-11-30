@@ -142,7 +142,7 @@ bool HandleRequest(
 int main(int argc, char **argv)
 {
     // init
-    ros::init(argc, argv, "points_in_lasso_solver");
+    ros::init(argc, argv, "lasso_solver");
     ros::NodeHandle n;
 
     // standard ros service

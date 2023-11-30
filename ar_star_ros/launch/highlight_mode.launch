@@ -1,6 +1,6 @@
 <launch>
-  <!-- load lasso mode params -->
-  <rosparam file="$(find ar_star_ros)/params/lasso_mode.yaml" command="load"/>
+  <!-- load highlight mode params -->
+  <rosparam file="$(find ar_star_ros)/params/highlight_mode.yaml" command="load"/>
   
   <!--launch robofleet with desired config file-->
   <arg name="config_file" value="$(find ar_star_ros)/../config/ar_star_rf_client_config.yaml"/>
@@ -13,8 +13,8 @@
 	/>
 
   <!-- Launch the service server -->
-  <node pkg="ar_star_ros" type="lasso_solver" name="lasso_solver" output="screen" />
+  <node pkg="ar_star_ros" type="highlight_solver" name="highlight_solver" output="screen" />
 
   <!-- Launch the service client -->
-  <node pkg="ar_star_ros" type="lasso_listener" name="lasso_listener" output="screen" />
+  <node pkg="ar_star_ros" type="highlight_listener" name="highlight_listener" output="screen" />
 </launch>
