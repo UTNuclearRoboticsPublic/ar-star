@@ -48,7 +48,7 @@ void ServiceCall()
         if (client_.call(srv_))
         {
             highlight_points_pub_.publish(srv_.response.tagged_points);
-            std::cout << std::endl << "Service Complete." << std::endl;
+            ROS_WARN("Highlight Service Complete.\n");
         }
         else
         {
@@ -62,7 +62,7 @@ void ServiceCall()
 
 void CloudCallback(const sensor_msgs::PointCloud2::ConstPtr& Msg)
 {
-    std::cout << std::endl << "pointcloud message received." << std::endl;
+    ROS_WARN("sensor_msgs/PointCloud2 msg received.");
     isCloudCallbackTriggered_ = true;
      srv_.request.cloud = *Msg;
     ServiceCall();
@@ -70,7 +70,7 @@ void CloudCallback(const sensor_msgs::PointCloud2::ConstPtr& Msg)
 
 void HighlightPointsCallback(const geometry_msgs::PolygonStamped::ConstPtr& Msg)
 {
-    std::cout << std::endl << "highlight message received." << std::endl;
+    ROS_WARN("geometry_msgs/PolygonStamped Highlight msg received.");
     isHighlightPointsCallbackTriggered_ = true;
     srv_.request.highlight = *Msg;
     ServiceCall();
@@ -82,18 +82,32 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "highlight_listener");
     ros::NodeHandle n;
 
-    // subscribe to cloud & highlight point messages from hololens
-    ros::Subscriber cloud_sub = n.subscribe("/vaultbot/surface_repair/surface_points", 1000, CloudCallback);
-    ros::Subscriber poly_sub = n.subscribe("/hololens/surface_repair/highlight/points", 1000, HighlightPointsCallback);
+    // init param variables
+    std::string highlight_cloud_topic;
+    std::string highlight_points_topic;
+    std::string highlight_tagged_points_in_cloud_topic;
 
-    // create publisher for which points are inside lasso
-    highlight_points_pub_ = n.advertise<std_msgs::UInt8MultiArray>("/server/surface_repair/highlight/pc_points_tagged", 2);
+    // get params
+    if(!n.getParam("highlight/cloud_topic", highlight_cloud_topic))
+        ROS_ERROR("Failed to get param 'highlight/cloud_topic'");
+    if(!n.getParam("highlight/points_topic", highlight_points_topic))
+        ROS_ERROR("Failed to get param 'highlight/points_topic'");
+    if(!n.getParam("highlight/tagged_points_in_cloud_topic", highlight_tagged_points_in_cloud_topic))
+        ROS_ERROR("Failed to get param 'highlight/tagged_points_in_cloud_topic'");
+
+    // init subscribers 
+    ros::Subscriber cloud_sub = n.subscribe(highlight_cloud_topic, 1000, CloudCallback);
+    ros::Subscriber poly_sub = n.subscribe(highlight_points_topic, 1000, HighlightPointsCallback);
+
+    // init publisher for which points are inside lasso
+    highlight_points_pub_ = n.advertise<std_msgs::UInt8MultiArray>(highlight_tagged_points_in_cloud_topic, 2);
 
     // create service client object
     client_ = n.serviceClient<ar_star_ros::GetPointsInHighlight>("get_points_in_highlight");
 
-    // get extrusion depth
-    n.param<float>("hl_uniform_radius", srv_.request.uniform_radius, 0.0);
+    // get extrusion depth param
+    if(!n.getParam("highlight/uniform_radius", srv_.request.uniform_radius))
+        ROS_ERROR("Failed to get param 'highlight/uniform_radius'");
 
     // standard ros spinner
     ros::spin();

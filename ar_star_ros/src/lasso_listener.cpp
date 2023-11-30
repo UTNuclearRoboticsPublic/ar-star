@@ -70,7 +70,7 @@ void CloudCallback(const sensor_msgs::PointCloud2::ConstPtr& Msg)
 
 void LassoPointsCallback(const geometry_msgs::PolygonStamped::ConstPtr& Msg)
 {
-    ROS_WARN("geometry_msgs/PolygonStamped msg received.");
+    ROS_WARN("geometry_msgs/PolygonStamped Lasso msg received.");
     srv_.request.lasso = *Msg;
     isLassoPointsCallbackTriggered_ = true;
     ServiceCall();
@@ -82,19 +82,34 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "lasso_listener");
     ros::NodeHandle n;
 
-    // subscribe to cloud & polygon messages from hololens
-    ros::Subscriber cloud_sub = n.subscribe("/vaultbot/surface_repair/surface_points", 1000, CloudCallback);
-    ros::Subscriber poly_sub = n.subscribe("/hololens/surface_repair/polygon_points", 1000, LassoPointsCallback);
+    // init param variables
+    std::string cloud_topic;
+    std::string points_topic;
+    std::string tagged_points_in_cloud_topic;
 
-    // create publisher for which points are inside lasso
-    lasso_points_pub_ = n.advertise<std_msgs::UInt8MultiArray>("/server/surface_repair/lasso_points", 2);
+    // get paramss
+    if(!n.getParam("lasso/cloud_topic", cloud_topic))
+        ROS_ERROR("Failed to get param 'lasso/cloud_topic'");
+    if(!n.getParam("lasso/points_topic", points_topic))
+        ROS_ERROR("Failed to get param 'lasso/points_topic'");
+    if(!n.getParam("lasso/tagged_points_in_cloud_topic", tagged_points_in_cloud_topic))
+        ROS_ERROR("Failed to get param 'lasso/tagged_points_in_cloud_topic'");
+
+    // init subscribers
+    ros::Subscriber cloud_sub = n.subscribe(cloud_topic, 1000, CloudCallback);
+    ros::Subscriber poly_sub = n.subscribe(points_topic, 1000, LassoPointsCallback);
+
+    // init publisher for which points are inside lasso
+    lasso_points_pub_ = n.advertise<std_msgs::UInt8MultiArray>(tagged_points_in_cloud_topic, 2);
 
     // create service client object
     client_ = n.serviceClient<ar_star_ros::GetPointsInLasso>("get_points_in_lasso");
 
-    // get extrusion depth
-    n.param<float>("extrusion_depth", srv_.request.extrusion_depth, 0.1);
-    n.param<float>("l_uniform_radius", srv_.request.uniform_radius, 0.0);
+    // get extrusion depth & uniform radius params
+    if(!n.getParam("lasso/extrusion_depth", srv_.request.extrusion_depth))
+        ROS_ERROR("Failed to get param 'lasso/extrusion_depth'");
+    if(!n.getParam("lasso/uniform_radius", srv_.request.uniform_radius))
+        ROS_ERROR("Failed to get param 'lasso/uniform_radius'");
 
     // standard ros spinner
     ros::spin();

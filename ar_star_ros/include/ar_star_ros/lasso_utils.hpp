@@ -112,13 +112,13 @@ public:
     /**
      * @brief Creates new triangulated meshes from base mesh, in both directions, normal to each triangle plane.
      * 
-     * @param PolyMesh      in: triangulated base mesh of the polygon
-     * @param Indexes       in: indexes of each point in each triange based on the orginal polygon points
-     * @param ExtrusionDist in: the distance each triangulated mesh should be extruded from the base mesh
-     * @param UpperPolyMesh out: triangulated mesh of the top extrusion
-     * @param LowerPolyMesh out: triangulated mesh of the bottom extrusion
-     * @param UpperVertexes out: the vertexes of each triangle in the top extruded mesh
-     * @param LowerVertexes out: the vertexes of each triangle in the bottom extruded mesh
+     * @param PolyMesh          in: triangulated base mesh of the polygon
+     * @param Indexes           in: indexes of each point in each triange based on the orginal polygon points
+     * @param ExtrusionDist     in: the distance each triangulated mesh should be extruded from the base mesh
+     * @param UpperPolyMesh     out: triangulated mesh of the top extrusion
+     * @param LowerPolyMesh     out: triangulated mesh of the bottom extrusion
+     * @param UpperVertexes     out: the vertexes of each triangle in the top extruded mesh
+     * @param LowerVertexes     out: the vertexes of each triangle in the bottom extruded mesh
      */
     void ExtrudeTriangulatedPolygon(
         const std::vector<Matrix3f>& PolyMesh,

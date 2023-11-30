@@ -37,7 +37,7 @@
 
 ARStar::HighlightUtils highlight_util;
 
-void GetPointsInHighlight(
+void GetPointsInHighlightPolygon(
     const sensor_msgs::PointCloud2& Cloud,
     const PointCloud<PointXYZ>::Ptr HighlightedPoints,
     const float& UniformRadius,
@@ -113,7 +113,7 @@ bool HandleRequest(
     highlight_array->width = highlight_array->size();
 
     // get points inside cloud
-    GetPointsInHighlight(Req.cloud, highlight_array, Req.uniform_radius, Res.tagged_points);
+    GetPointsInHighlightPolygon(Req.cloud, highlight_array, Req.uniform_radius, Res.tagged_points);
 
     return true;
 }

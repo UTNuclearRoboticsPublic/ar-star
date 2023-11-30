@@ -1,2 +1,9 @@
 # highlight_mode.yaml params
-hl_uniform_radius: 0.01  # [m]
+highlight:
+# topic configuration
+  cloud_topic: "/vaultbot/surface_repair/surface_points"                            # incoming
+  points_topic: "/hololens/surface_repair/highlight/points"                         # incoming
+  tagged_points_in_cloud_topic: "/server/surface_repair/highlight/pc_points_tagged" # outgoing
+  
+  # uniform radius of spheres used
+  uniform_radius: 0.025  # [m]

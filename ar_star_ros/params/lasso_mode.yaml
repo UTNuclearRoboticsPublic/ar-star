@@ -1,3 +1,9 @@
 # lasso_mode.yaml params
-extrusion_depth: 0.04   # [m]
-l_uniform_radius: 0.01  # [m]
+lasso: 
+  # topic configuration
+  cloud_topic: "/vaultbot/surface_repair/surface_points"                            # incoming
+  points_topic: "/hololens/surface_repair/lasso/points"                             # incoming
+  tagged_points_in_cloud_topic: "/server/surface_repair/lasso/pc_points_tagged"     # outgoing
+  extrusion_depth: 0.04   # [m]
+  uniform_radius: 0.025    # [m]
+

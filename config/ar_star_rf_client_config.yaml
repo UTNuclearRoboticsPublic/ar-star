@@ -32,8 +32,13 @@ params:
 
 publishers: [ # these are the topics to publish to the robofleet server
   {
-    client_topic: "/server/surface_repair/lasso_points",
-    rbf_topic: "/server/surface_repair/lasso_points",
+    client_topic: "/server/surface_repair/lasso/pc_points_tagged",
+    rbf_topic: "/server/surface_repair/lasso/pc_points_tagged",
+    type: "std_msgs/UInt8MultiArray"
+  },
+  {
+    client_topic: "/server/surface_repair/highlight/pc_points_tagged",
+    rbf_topic: "/server/surface_repair/highlight/pc_points_tagged",
     type: "std_msgs/UInt8MultiArray"
   }
 ]
@@ -88,13 +93,13 @@ subscribers: [ # these are the topics to subscribe to on the robofleet server
     queue: 10
   },
   {
-    client_topic: "/hololens/surface_repair/polygon_points",
-    rbf_topic: "/hololens/surface_repair/polygon_points",
+    client_topic: "/hololens/surface_repair/lasso/points",
+    rbf_topic: "/hololens/surface_repair/lasso/points",
     type: "geometry_msgs/PolygonStamped"
   },
   {
-    client_topic: "/hololens/surface_repair/highlighted_points",
-    rbf_topic: "/hololens/surface_repair/highlighted_points",
-    type: "std_msgs/UInt8MultiArray"
+    client_topic: "/hololens/surface_repair/highlight/points",
+    rbf_topic: "/hololens/surface_repair/highlight/points",
+    type: "geometry_msgs/PolygonStamped"
   }
 ]
