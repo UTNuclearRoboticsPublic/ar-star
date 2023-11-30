@@ -169,7 +169,7 @@ int main(int argc, char **argv)
 
     // standard ros service
     ros::ServiceServer service = n.advertiseService("get_points_in_lasso", HandleRequest);
-    ROS_INFO("GetPointsInLasso service is ready.");
+    ROS_WARN("GetPointsInLasso service is ready.");
     ros::spin();
 
     return 0;

@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     std::string points_topic;
     std::string tagged_points_in_cloud_topic;
 
-    // get paramss
+    // get params
     if(!n.getParam("lasso/cloud_topic", cloud_topic))
         ROS_ERROR("Failed to get param 'lasso/cloud_topic'");
     if(!n.getParam("lasso/points_topic", points_topic))

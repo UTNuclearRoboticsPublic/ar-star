@@ -1,0 +1,11 @@
+<launch>
+    <!-- Launch robofleet client connection -->
+    <include file="$(find ar_star_ros)/launch/robofleet_client.launch"/>
+
+    <!-- Launch lasso mode -->
+    <include file="$(find ar_star_ros)/launch/lasso_mode.launch"/>   
+    
+    <!-- Launch highlight mode -->
+    <include file="$(find ar_star_ros)/launch/highlight_mode.launch"/> 
+
+</launch>
