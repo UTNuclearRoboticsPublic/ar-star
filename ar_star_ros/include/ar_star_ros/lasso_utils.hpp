@@ -31,6 +31,7 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/ear_clipping.h>
 #include <pcl/common/common.h>
+#include <pcl/common/distances.h>
 #include <Eigen/Dense>
 #include <iostream>
 #include <limits>
@@ -323,6 +324,24 @@ public:
         return (intersectionCount % 2) == 1; // if odd number of times its inside
     }
 
+    void GetMaxSquaredDistanceInPolygon(
+        const PointCloud<PointXYZ>::Ptr LassoPolyPoints,
+        float& MaxSqrDistance)
+    {
+        // init the maximum distance and current distance
+        MaxSqrDistance = 0.0;
+        float cur_distance = 0.0;
+
+        // find max distance within the given lasso points
+        for (size_t i = 0; i < LassoPolyPoints->size(); ++i) 
+        {
+            cur_distance = pcl::squaredEuclideanDistance(LassoPolyPoints->points[0], LassoPolyPoints->points[i]);
+            cur_distance > MaxSqrDistance ? MaxSqrDistance = cur_distance : 0;
+        }
+
+        // inflate the max squared distance alitle
+        MaxSqrDistance += 0.05; // [m]
+    }
 
 
 private:

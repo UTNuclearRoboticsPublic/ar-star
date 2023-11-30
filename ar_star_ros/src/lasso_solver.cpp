@@ -28,7 +28,6 @@
 #include "ros/ros.h"
 
 #include <Eigen/Dense>
-#include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
@@ -43,13 +42,15 @@ bool PrintDebug = true;
 void GetPointsInPolygon(
     const sensor_msgs::PointCloud2& Cloud,
     const std::vector<Matrix3f>& Triangles,
-    const PointCloud<PointXYZ>::Ptr HighlightedPoints,
+    const PointCloud<PointXYZ>::Ptr LassoPolyPoints,
     const float& UniformRadius,
+    const float& MaxSqrDistance,
     std_msgs::UInt8MultiArray& Points
     )
 {
     // init
 	int i{ 0 };
+    float square_dist{ 0 };
     uint32_t x_offset{ 0 }; 
 	uint32_t y_offset{ 0 };
 	uint32_t z_offset{ 0 };
@@ -58,8 +59,14 @@ void GetPointsInPolygon(
 	uint32_t rgb_values{ 0 };
     std::string pf_name{ "" };
     Eigen::Vector3f point;
+    Eigen::Vector3f first_lasso_poly_point;
 
-	// get required point cloud parameters for looping
+    // set
+    first_lasso_poly_point << LassoPolyPoints->points[0].x,
+                              LassoPolyPoints->points[0].y,
+                              LassoPolyPoints->points[0].z;
+
+	// get required point cloud parameters for looping through point cloud
 	for (auto point_field : Cloud.fields)
 	{
 		pf_name = point_field.name;
@@ -80,10 +87,12 @@ void GetPointsInPolygon(
 		}
 	}
 
-    // iterate through the point cloud and check if each point in cloud and determine if it is inside volume
+    // iterate through the point cloud and 
+    // check if each point in cloud and determine 
+    // if it is inside the volume made up of triangles
     Points.data.resize(Cloud.height * Cloud.width);
-	for (uint32_t row = 0; row < Cloud.height; ++row) {
-		for (uint32_t col = 0; col < Cloud.width; ++col) {
+	for (size_t row = 0; row < Cloud.height; ++row) {
+		for (size_t col = 0; col < Cloud.width; ++col) {
 		    
             // compute the index of the current point in point cloud data array
 			data_index = row * Cloud.row_step + col * Cloud.point_step;
@@ -93,8 +102,17 @@ void GetPointsInPolygon(
 			point(1) = *(reinterpret_cast<const float*>(Cloud.data.data() + data_index + y_offset)); // y [m]
 			point(2) = *(reinterpret_cast<const float*>(Cloud.data.data() + data_index + z_offset)); // z [m]
 
-            // check if point is inside the highligh first, if not check if inside the volume
-            Points.data[i] = highlight_util.IsPointInHighlight(point, UniformRadius, HighlightedPoints) ? 1 : (lasso_util.IsPointInsideVolume(point, Triangles, false) ? 1 : 0);
+            // only process points in cloud that are within close proximity to lasso polygon
+            square_dist = (first_lasso_poly_point - point).squaredNorm();
+
+            if(square_dist < MaxSqrDistance)
+            {
+                // check if point is inside the highlight first, if not check if inside the volume
+                Points.data[i] = highlight_util.IsPointInHighlight(point, UniformRadius, LassoPolyPoints) ? 1 : 
+                                 (lasso_util.IsPointInsideVolume(point, Triangles, false) ? 1 : 0);
+            }
+
+            // increment
 			i++;
 		}
 	}
@@ -105,6 +123,7 @@ bool HandleRequest(
     ar_star_ros::GetPointsInLasso::Response &Res)
 {
     // init
+    float max_sqr_dist;
     std::vector<int> tri_poly_indexes, side_indexes;
     std::vector<Eigen::Vector3f> upper_vertexes, lower_vertexes, interlocked_vertices;
     std::vector<Eigen::Matrix3f> tri_poly, upper_tri_poly, lower_tri_poly, side_tri, all_tri;
@@ -130,11 +149,14 @@ bool HandleRequest(
     lasso_util.ConcatPolyMesh( // --------------------------------------------------
         upper_tri_poly, lower_tri_poly, side_tri, false,                   // in
         all_tri);                                                          // out
+    lasso_util.GetMaxSquaredDistanceInPolygon(  // ---------------------------------
+        lasso_poly,                                                        // in
+        max_sqr_dist);                                                     // out
 
     // check if the points in cloud are in created volume
     GetPointsInPolygon(
-        Req.cloud, all_tri, lasso_poly, Req.uniform_radius, // in 
-        Res.lasso_points);                                 // out
+        Req.cloud, all_tri, lasso_poly, Req.uniform_radius, max_sqr_dist,  // in 
+        Res.lasso_points);                                                 // out
 
     return true;
 }
