@@ -109,7 +109,7 @@ void GetPointsInPolygon(
             {
                 // check if point is inside the highlight first, if not check if inside the volume
                 Points.data[i] = highlight_util.IsPointInHighlight(point, UniformRadius, LassoPolyPoints) ? 1 : 
-                                 (lasso_util.IsPointInsideVolume(point, Triangles, false) ? 1 : 0);
+                                 (lasso_util.IsPointInsideVolume(point, Triangles) ? 1 : 0);
             }
 
             // increment

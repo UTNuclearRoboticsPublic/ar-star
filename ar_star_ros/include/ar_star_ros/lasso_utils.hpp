@@ -58,15 +58,22 @@ class LassoUtils
 
 public:
 
+    /**
+     * @brief Triangulates a convex polygon in 3D space.
+     * 
+     * @param Polygon           in: the input 3D lasso polygon (defined as a pcl::PointCloud)
+     * @param TriPolygonMesh    out: triangulated mesh of the 3D polygon
+     * @param Indexes           out: indexes describing which triangle connects to which point on the polygon
+     */
     void EarClippingTriangulate(
-        PointCloud<PointXYZ>::Ptr cloud,
-        std::vector<Matrix3f>& poly_mesh,
-        std::vector<int>& indexes)
+        const PointCloud<PointXYZ>::Ptr Polygon,
+        std::vector<Matrix3f>& TriPolygonMesh,
+        std::vector<int>& Indexes)
     {
-        DEBUG_PRINT_CLOUD_XYZ(cloud);
+        DEBUG_PRINT_CLOUD_XYZ(Polygon);
 
         Vertices vertices;
-        vertices.vertices.resize (cloud->size ());
+        vertices.vertices.resize (Polygon->size ());
 
         for (int i = 0; i < static_cast<int> (vertices.vertices.size ()); ++i)
         {
@@ -74,7 +81,7 @@ public:
         }
 
         PolygonMesh::Ptr mesh (new PolygonMesh);
-        toPCLPointCloud2 (*cloud, mesh->cloud);
+        toPCLPointCloud2 (*Polygon, mesh->cloud);
         mesh->polygons.push_back (vertices);
 
         EarClipping clipper;
@@ -91,17 +98,28 @@ public:
             for (size_t j = 0; j < 3; ++j)
             {
                 size_t k = triangulated_mesh.polygons[i].vertices[j];
-                indexes.push_back(k);
-                triangle.row(j) << cloud->points[k].x,
-                                   cloud->points[k].y,
-                                   cloud->points[k].z;
+                Indexes.push_back(k);
+                triangle.row(j) << Polygon->points[k].x,
+                                   Polygon->points[k].y,
+                                   Polygon->points[k].z;
             }
-            poly_mesh.push_back(triangle);
+            TriPolygonMesh.push_back(triangle);
         }
         
         DEBUG_PRINT_TRIANGLE_INDEXES(triangulated_mesh, 1);
     }
 
+    /**
+     * @brief Creates new triangulated meshes from base mesh, in both directions, normal to each triangle plane.
+     * 
+     * @param PolyMesh      in: triangulated base mesh of the polygon
+     * @param Indexes       in: indexes of each point in each triange based on the orginal polygon points
+     * @param ExtrusionDist in: the distance each triangulated mesh should be extruded from the base mesh
+     * @param UpperPolyMesh out: triangulated mesh of the top extrusion
+     * @param LowerPolyMesh out: triangulated mesh of the bottom extrusion
+     * @param UpperVertexes out: the vertexes of each triangle in the top extruded mesh
+     * @param LowerVertexes out: the vertexes of each triangle in the bottom extruded mesh
+     */
     void ExtrudeTriangulatedPolygon(
         const std::vector<Matrix3f>& PolyMesh,
         const std::vector<int>& Indexes, 
@@ -173,6 +191,15 @@ public:
         DEBUG_PRINT_VECTOR(LowerVertexes, 3);
     }
 
+    /**
+     * @brief Created a mesh of triangles that wraps around two polygon meshes some distance apart in space.
+     * 
+     * @param UpperVertices         in: the vertexes of each triangle in the top mesh
+     * @param LowerVertices         in: the vertexes of each triangle in the bottom mesh
+     * @param InterlockedVertices   out: the vertexes of the wrapped triangles around the top and bottom mesh
+     * @param Indexes               out: the indexes of each triangle that exist in the upper and bottom polygons
+     * @param PolyMesh              out: the mesh of triangles
+     */
     void WrapPolygon(
         const std::vector<Vector3f>& UpperVertices,
         const std::vector<Vector3f>& LowerVertices,
@@ -257,6 +284,14 @@ public:
         DEBUG_PRINT_VECTOR(InterlockedVertices, 4);
     }
 
+    /**
+     * @brief Takes an upper, lower, and wrapped triangulated polygon mesh and concatenates them
+     * 
+     * @param PolyMeshA     in: triangulated polygon mesh A
+     * @param PolyMeshB     in: triangulated polygon mesh B
+     * @param PolyMeshC     in: triangulated polygon mesh C
+     * @param OutPolyMesh   out: concatenated triangulated polygon mesh
+     */
     void ConcatPolyMesh(
         const std::vector<Matrix3f>& PolyMeshA,
         const std::vector<Matrix3f>& PolyMeshB,
@@ -270,34 +305,48 @@ public:
         OutPolyMesh.insert(OutPolyMesh.end(), PolyMeshC.begin(), PolyMeshC.end()); 
     }
 
-    // ref: https://cs.nyu.edu/~panozzo/cg/02%20-%20Ray%20Tracing,%20C++.pdf
+    /**
+     * @brief Ray casting algorithm to determine if a point in 3D space is within a triangulated volume.
+     * 
+     * reference: 
+     * https://cs.nyu.edu/~panozzo/cg/02%20-%20Ray%20Tracing,%20C++.pdf
+     *
+     * @param Point         in: the point in which to make the determination for
+     * @param PolyMesh      in: the full triangulated mesh that describes a volume
+     * @return true         if point is determined to be inside volume
+     * @return false        if point is determined to be outside volume
+     */
     bool IsPointInsideVolume( 
         const Vector3f& Point,
-        const std::vector<Matrix3f>& PolyMesh,
-        bool PrintDebug)
+        const std::vector<Matrix3f>& PolyMesh)
     {
         Vector3f pa, pb, pc, p, N;
         Vector3f ray_dir(2000.0f, 1000.0f, 0.0f);
         int intersectionCount {0};
         for (size_t i {0}; i < PolyMesh.size(); i++)
         {
+            //init
+            float u, v, t;
+
             // make Vector3f
             pa = PolyMesh[i].row(0);
             pb = PolyMesh[i].row(1);
             pc = PolyMesh[i].row(2);
 
+            // create left and right side matrix's to solve
             Vector3f b(Point - pa);
             Matrix3f A;
             A << pb - pa,
                  pc - pa,
                 -ray_dir;
 
+            // solve system of equations
             Vector3f x = A.colPivHouseholderQr().solve(b);
-            float u, v, t;
             u = x(0); // x position within triangle
             v = x(1); // y position within triangle
             t = x(2); // distance along ray
 
+            // conditions that determine if point intersects with triangle
             if (u>=0 && v>=0 && u+v<=1 && t>0) 
             {
                 /*
@@ -308,9 +357,16 @@ public:
             }
         }
 
-        return (intersectionCount % 2) == 1; // if odd number of times its inside
+        // if odd number of times its inside
+        return (intersectionCount % 2) == 1; 
     }
 
+    /**
+     * @brief Get the Max Squared Distance In Polygon object
+     * 
+     * @param LassoPolyPoints in: the original polygon points in the user defined lasso
+     * @param MaxSqrDistance  out: max squared distance in entire lasso polygon
+     */
     void GetMaxSquaredDistanceInPolygon(
         const PointCloud<PointXYZ>::Ptr LassoPolyPoints,
         float& MaxSqrDistance)
@@ -329,7 +385,6 @@ public:
         // inflate the max squared distance alitle
         MaxSqrDistance += 0.05; // [m]
     }
-
 
 private:
 
