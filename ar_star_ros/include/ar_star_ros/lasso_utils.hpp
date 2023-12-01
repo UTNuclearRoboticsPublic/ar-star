@@ -37,11 +37,13 @@
 #include <limits>
 
 #ifdef DEBUG // catkin build with -DCMAKE_CXX_FLAGS="-DDEBUG" to enable debug print statements
+#define DEBUG_PRINT(x) std::cout << x << std::endl
 #define DEBUG_PRINT_TRIANGLE_INDEXES(mesh, num) PrintTriangleIndexes(mesh, num)
 #define DEBUG_PRINT_INDEXES(index, num) PrintIndexes(index, num)
 #define DEBUG_PRINT_CLOUD_XYZ(cloud) PrintCloudXYZ(cloud)
 #define DEBUG_PRINT_VECTOR(vector, num) PrintVector3(vector, num)
 #else
+#define DEBUG_PRINT(x)
 #define DEBUG_PRINT_TRIANGLE_INDEXES(mesh, num)
 #define DEBUG_PRINT_INDEXES(index, num)
 #define DEBUG_PRINT_CLOUD_XYZ(cloud)
@@ -57,6 +59,42 @@ class LassoUtils
 {
 
 public:
+
+    void ParsePolygonPath(
+        const pcl::PointCloud<pcl::PointXYZ>::Ptr PolygonPoints,
+        const int CutoffSize,
+        const int NumSkip,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr& ParsedPolygonPoints
+    )
+    {
+        int poly_size =  PolygonPoints->size();
+        int j = 0;
+
+        if (poly_size < CutoffSize)
+        {
+            pcl::copyPointCloud(*PolygonPoints, *ParsedPolygonPoints);
+        }
+        else
+        {
+            ParsedPolygonPoints->height = 1;
+            for (size_t i {0}; i < poly_size; i++)
+            {
+                if ((i % NumSkip) == 0)
+                {
+                    ParsedPolygonPoints->points.emplace_back(
+                        PolygonPoints->points[i].x, 
+                        PolygonPoints->points[i].y, 
+                        PolygonPoints->points[i].z);
+                    j++;
+                }
+            }
+            ParsedPolygonPoints->width = j;
+        }
+        DEBUG_PRINT("Size of j: " << j);
+        DEBUG_PRINT("Size of PolygonPoints: " <<  poly_size);
+        DEBUG_PRINT("Size of ParsedPolygonPoints: " <<  ParsedPolygonPoints->size());
+    }
+
 
     /**
      * @brief Triangulates a convex polygon in 3D space.
@@ -81,7 +119,7 @@ public:
         }
 
         PolygonMesh::Ptr mesh (new PolygonMesh);
-        toPCLPointCloud2 (*Polygon, mesh->cloud);
+        toPCLPointCloud2(*Polygon, mesh->cloud);
         mesh->polygons.push_back (vertices);
 
         EarClipping clipper;

@@ -35,9 +35,10 @@
 #include "ar_star_ros/highlight_utils.hpp"
 #include "ar_star_ros/GetPointsInLasso.h"
 
-ARStar::LassoUtils lasso_util;
-ARStar::HighlightUtils highlight_util;
-bool PrintDebug = true;
+ARStar::LassoUtils lasso_util_;
+ARStar::HighlightUtils highlight_util_;
+int cutoff_size_;
+int num_skip_;
 
 void GetPointsInPolygon(
     const sensor_msgs::PointCloud2& Cloud,
@@ -108,8 +109,8 @@ void GetPointsInPolygon(
             if(square_dist < MaxSqrDistance)
             {
                 // check if point is inside the highlight first, if not check if inside the volume
-                Points.data[i] = highlight_util.IsPointInHighlight(point, UniformRadius, LassoPolyPoints) ? 1 : 
-                                 (lasso_util.IsPointInsideVolume(point, Triangles) ? 1 : 0);
+                Points.data[i] = highlight_util_.IsPointInHighlight(point, UniformRadius, LassoPolyPoints) ? 1 : 
+                                 (lasso_util_.IsPointInsideVolume(point, Triangles) ? 1 : 0);
             }
 
             // increment
@@ -127,29 +128,33 @@ bool HandleRequest(
     std::vector<int> tri_poly_indexes, side_indexes;
     std::vector<Eigen::Vector3f> upper_vertexes, lower_vertexes, interlocked_vertices;
     std::vector<Eigen::Matrix3f> tri_poly, upper_tri_poly, lower_tri_poly, side_tri, all_tri;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr lasso_poly(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr parsed_lasso_poly(new pcl::PointCloud<pcl::PointXYZ>);
 
     // convert incoming lasso points into PCL cloud for further processing
-    pcl::PointCloud<pcl::PointXYZ>::Ptr lasso_poly(
-        new pcl::PointCloud<pcl::PointXYZ>);
     lasso_poly->height = 1;
     for (const auto& point : Req.lasso.polygon.points)
         lasso_poly->points.emplace_back(point.x, point.y, point.z);
     lasso_poly->width = lasso_poly->size();
 
+
     // create triangulated volume from lasso polygon
-    lasso_util.EarClippingTriangulate( // ------------------------------------------
-        lasso_poly,                                                           // in
+    lasso_util_.ParsePolygonPath(
+        lasso_poly, cutoff_size_, num_skip_,
+        parsed_lasso_poly);
+    lasso_util_.EarClippingTriangulate( // ------------------------------------------
+        parsed_lasso_poly,                                                    // in
         tri_poly, tri_poly_indexes);                                          // out
-    lasso_util.ExtrudeTriangulatedPolygon( // --------------------------------------
+    lasso_util_.ExtrudeTriangulatedPolygon( // --------------------------------------
         tri_poly, tri_poly_indexes, Req.extrusion_depth,                      // in
         upper_tri_poly, lower_tri_poly,upper_vertexes, lower_vertexes);       // out
-    lasso_util.WrapPolygon( // -----------------------------------------------------
+    lasso_util_.WrapPolygon( // -----------------------------------------------------
         upper_vertexes, lower_vertexes,                                       // in
         interlocked_vertices, side_indexes, side_tri);                        // out
-    lasso_util.ConcatPolyMesh( // --------------------------------------------------
+    lasso_util_.ConcatPolyMesh( // --------------------------------------------------
         upper_tri_poly, lower_tri_poly, side_tri,                             // in
         all_tri);                                                             // out
-    lasso_util.GetMaxSquaredDistanceInPolygon( // ----------------------------------
+    lasso_util_.GetMaxSquaredDistanceInPolygon( // ----------------------------------
         lasso_poly,                                                           // in
         max_sqr_dist);                                                        // out
    
@@ -166,6 +171,12 @@ int main(int argc, char **argv)
     // init
     ros::init(argc, argv, "lasso_solver");
     ros::NodeHandle n;
+
+    // get params for parsing polygon path
+    if(!n.getParam("lasso/cutoff_size", cutoff_size_))
+        ROS_ERROR("Failed to get param 'lasso/cutoff_size'");
+    if(!n.getParam("lasso/num_skip", num_skip_))
+        ROS_ERROR("Failed to get param 'lasso/num_skip'");
 
     // standard ros service
     ros::ServiceServer service = n.advertiseService("get_points_in_lasso", HandleRequest);
