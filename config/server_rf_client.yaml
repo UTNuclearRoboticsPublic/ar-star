@@ -1,0 +1,57 @@
+params:
+  host_url: "ws://192.168.11.11:8080"
+
+  wait_for_pongs: true
+  max_queue_before_waiting: 5
+
+  # uncomment to run in Direct Mode
+  #direct_mode_port: 8080
+  #direct_mode_bytes_per_sec: 2048000
+
+  # Verbosity 0 - MINIMAL
+  # Verbosity 1 - CONFIG_ONLY
+  # Verbosity 2 - ALL
+  verbosity: 0
+
+  # you may need more threads to handle a large amount of traffic
+  spin_threads: 1
+
+# Publish information to Robofleet Server
+publishers: [
+  { # Send an array of points (True/False) that are highlighted in point cloud (highlight mode)
+    # 0 : points were not highlighted
+    # 1 : points are in highlight
+    # NOTE: configured for highlight and lasso server solver 
+    client_topic: "/server/surface_repair/lasso/pc_points_tagged",
+    rbf_topic: "/server/surface_repair/lasso/pc_points_tagged",
+    type: "std_msgs/UInt8MultiArray"
+  },
+  { # Send an array of points that are inside the convex lasso in point cloud (lasso mode)
+    # 0 : points were not highlighted
+    # 1 : points are in highlight
+    # NOTE: configured for highlight and lasso server solver 
+    client_topic: "/server/surface_repair/highlight/pc_points_tagged",
+    rbf_topic: "/server/surface_repair/highlight/pc_points_tagged",
+    type: "std_msgs/UInt8MultiArray"
+  }
+]
+
+# Subscribe to information on Robofleet Server
+subscribers: [ # these are the topics to subscribe to on the robofleet server
+  { # Receive centroids of spheres used for highlighting (highlight mode)
+    client_topic: "/hololens/surface_repair/highlight/points",
+    rbf_topic: "/hololens/surface_repair/highlight/points",
+    type: "geometry_msgs/PolygonStamped"
+  },
+  { # Receive centroids of spheres used for lasso (lasso mode)
+    client_topic: "/hololens/surface_repair/lasso/points",
+    rbf_topic: "/hololens/surface_repair/lasso/points",
+    type: "geometry_msgs/PolygonStamped"
+  },
+  { # Receive robot repair plan (point cloud)
+    # NOTE: Must come after "geometry_msgs/PolygonStamped"
+    client_topic: "/surface_repair/surface_points",
+    rbf_topic: "/vaultbot/surface_repair/surface_points",
+    type: "sensor_msgs/PointCloud2"
+  }
+]
