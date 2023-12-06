@@ -87,7 +87,7 @@ subscribers: [
   { # [OPTIONAL - USER STUDY] Receive upon hearing "end trial" keyword
     client_topic: "/hololens/surface_repair/end_trial",
     rbf_topic: "/hololens/surface_repair/end_trial",
-    type: "std_msgs/Header"
+    type: "augre_msgs/HeaderArrayStamped"
   },
   { # tf tree with all augre agents
     client_topic: "/tf",
