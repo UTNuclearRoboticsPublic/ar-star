@@ -3,7 +3,7 @@
 	<arg name="node_start_delay" default="2.0" />  
 
     <!--launch robofleet with desired config file-->
-    <arg name="config_file" value="$(find ar_star_ros)/../config/ar_star_rf_client_config.yaml"/>
+    <arg name="config_file" value="$(find ar_star_ros)/../config/server_rf_client.yaml"/>
     <node
     	name    = "robofleet_client"
     	pkg     = "robofleet_client"
