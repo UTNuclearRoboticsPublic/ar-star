@@ -45,6 +45,7 @@ publishers: [
 
 # Subscribe to information on Robofleet Server
 subscribers: [ 
+  
   { # Receive user feedback on repair plan
     client_topic: "/surface_repair/augre/hololens/user_feedback",
     rbf_topic: "/hololens/surface_repair/user_feedback",
@@ -55,6 +56,7 @@ subscribers: [
     rbf_topic: "/hololens/surface_repair/bounding_objects",
     type: "augre_msgs/BoundingObject3DArray"
   },
+  
   ########################################################################
   # NOTE: Commented out for highlight and lasso server solver configuration
   # { # Receive centroids of spheres used for highlighting (highlight mode)

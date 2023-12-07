@@ -11,10 +11,10 @@ params:
   # Verbosity 0 - MINIMAL
   # Verbosity 1 - CONFIG_ONLY
   # Verbosity 2 - ALL
-  verbosity: 0
+  verbosity: 2
 
   # you may need more threads to handle a large amount of traffic
-  spin_threads: 1
+  spin_threads: 3
 
 # Publish information to Robofleet Server
 publishers: [
@@ -50,7 +50,7 @@ subscribers: [ # these are the topics to subscribe to on the robofleet server
   },
   { # Receive robot repair plan (point cloud)
     # NOTE: Must come after "geometry_msgs/PolygonStamped"
-    client_topic: "/surface_repair/surface_points",
+    client_topic: "/vaultbot/surface_repair/surface_points",
     rbf_topic: "/vaultbot/surface_repair/surface_points",
     type: "sensor_msgs/PointCloud2"
   }
