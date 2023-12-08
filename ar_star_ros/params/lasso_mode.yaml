@@ -4,7 +4,7 @@ lasso:
   cloud_topic: "/vaultbot/surface_repair/surface_points"                            # incoming
   points_topic: "/hololens/surface_repair/lasso/points"                             # incoming
   tagged_points_in_cloud_topic: "/server/surface_repair/lasso/pc_points_tagged"     # outgoing
-  extrusion_depth: 0.04   # [m]
+  extrusion_depth: 0.05   # [m]
   uniform_radius: 0.025   # [m]
   cutoff_size: 15         # used for parsing polygon
   num_skip: 6             # used for parsing polygon
