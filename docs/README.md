@@ -1,6 +1,7 @@
 # AR Situational Task Accept & Repair
 
 ## HRI 2024 Submission
+---
 
 {% include youtube.html id="fjWK2SCbFZ8" %}
 
@@ -23,6 +24,7 @@
 ```
 
 ## IROS 2023 XR-ROB Workshop
+---
 
 {% include youtube.html id="rlCdHOC1ifg" %}
 
