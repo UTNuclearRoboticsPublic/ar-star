@@ -1,6 +1,6 @@
 # AR Situational Task Accept & Repair
 
-## HRI 2024 Submission
+## HRI 2024 Publication
 ---
 
 {% include youtube.html id="fjWK2SCbFZ8" %}
