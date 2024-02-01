@@ -2,4 +2,6 @@
 
 [![github.io](https://img.shields.io/badge/github.io-MainPage-black.svg)](https://utnuclearroboticspublic.github.io/ar-star/)
 
-###### This repo is currently still under development. More documentation to come!
+See the github.io page link above for project details. The source code for this project is currenlty closed source.
+
+###### More documentation and updates to come!
