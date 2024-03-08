@@ -1,15 +1,19 @@
 # AR Situational Task Accept & Repair
 
-## HRI 2024 Publication
+## HRI 2024 LBR Publication
 ---
+### Presentation
 
-{% include youtube.html id="fjWK2SCbFZ8" %}
+{% include youtube.html id="ZUHpxfw46Z4" %}
 
 ### About
 [![arXiv](https://img.shields.io/badge/doi-10.1145/3610978.3640571-blue.svg)](https://doi.org/10.1145/3610978.3640571)
 
 Robotic solutions are being deployed in industry to perform increasingly challenging maintenance and inspection tasks. In many industrial applications, robots can encounter uncertainties that prevent task completion, potentially resulting in unexpected costs and unsafe working conditions. Supervised autonomy allows personnel to intervene and assist in negotiating these challenging situations. Augmented Reality (AR) allows for the visualization of complex robotic sensor data and provides an opportunity for non-expert users to interact with it in a natural and intuitive manner. We present a comprehensive AR application module—Augmented Reality-Situational Task Accept and Repair (AR-STAR)—that allows users to visualize LiDAR point cloud data along with sensor images and navigational goals. AR-STAR enables users to interact with LiDAR point clouds and modify them in real time. We developed and evaluated three interaction modalities that enable users to manipulate point cloud data in situ while observing the data superimposed on the physical environment. Demonstrated in a human-robot teaming scenario where tasked to identify and repair surface corrosion in a simulated industrial setting, we evaluate AR-STAR with pilot studies to determine the preferred interaction modality based on user workload, system usability, and task completion time to improve improve interaction efficiency and maximize cost savings, respectively.
 
+### System Overview
+
+{% include youtube.html id="fjWK2SCbFZ8" %}
 
 ### Citation
 ```
