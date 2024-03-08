@@ -1,4 +1,4 @@
-# AR Situational Task Accept & Repair (STAR)
+# AR Situational Task Accept & Repair (AR-STAR)
 
 [![github.io](https://img.shields.io/badge/github.io-MainPage-black.svg)](https://utnuclearroboticspublic.github.io/ar-star/)
 
